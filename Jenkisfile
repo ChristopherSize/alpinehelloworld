@@ -53,5 +53,18 @@ pipeline{
             }
         }
 
+        stage("Notifications to discord"){
+            environment{
+                 WEBHOOK_URL="https://discord.com/api/webhooks/1257337957912805481/WusY1xZcpyHwu4swpb2N71oiM7lvF4mMGpCxcfvQgxqAcB6SuRa2wQ6ptq6mU7bRzGhH"
+                MESSAGE="Build Notification: Job '${JOB_NAME}' (#${BUILD_NUMBER})"
+                
+            }
+            steps{
+                script{
+                    sh 'curl -H "Content-Type: application/json" -X POST -d "{\"content\": \"${MESSAGE}\"}" $WEBHOOK_URL'
+                }
+            }
+        }
+
     }
 }
