@@ -36,7 +36,7 @@ pipeline{
             agent any
             steps{
                 script { 
-                    sh 'curl http://ec2-16-171-170-24.eu-north-1.compute.amazonaws.com:81 | grep -q "Hello world!" '
+                    sh 'curl http://ec2-13-51-199-74.eu-north-1.compute.amazonaws.com:81 | grep -q "Hello world!" '
                 }
             }
         }
