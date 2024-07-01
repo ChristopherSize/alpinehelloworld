@@ -36,7 +36,7 @@ pipeline{
             agent any
             steps{
                 script { 
-                    sh 'curl http://13.60.157.205:81 | grep -q "Hello world!'
+                    sh 'curl http://13.60.157.205:81 | grep -q "Hello world!" '
                 }
             }
         }
