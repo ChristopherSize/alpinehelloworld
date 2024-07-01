@@ -53,27 +53,5 @@ pipeline{
             }
         }
 
-        stage("Push image in staging and deploying it"){
-            //Pour s'assurer que cette étape ne se déploy que sur la master branch
-            when{
-                expression {GIT_Branch == 'origin/master'}
-
-            }
-            agent any
-            environment{
-                HEROKU_API_KEY = credentials('heroku_api_key')
-            }
-            steps{
-                script { //La synatxe suivante c'est pour lancer plusieurs commande shell
-                    sh 
-                        '''
-                            heroku container:login
-                            heroku create $PRODUCTION || echo "project already exist"
-                            heroku container:push -a $PRODUCTION web
-                            heroku container:release -a $PRODUCTION web
-                        '''
-                }
-            }
-        }
     }
 }
