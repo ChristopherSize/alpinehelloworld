@@ -36,7 +36,7 @@ pipeline{
             agent any
             steps{
                 script { 
-                    sh 'curl http://ec2-16-171-170-24.eu-north-1.compute.amazonaws.com:81 | grep -q "Hello world!" '
+                    sh 'curl http://13.60.157.205:81 | grep -q "Hello world!" '
                 }
             }
         }
@@ -53,6 +53,28 @@ pipeline{
             }
         }
 
+        stage("Push image in staging and deploying it"){
+            //Pour s'assurer que cette étape ne se déploy que sur la master branch
+            when{
+                expression {GIT_Branch == 'origin/master'}
+
+            }
+            agent any
+            environment{
+                HEROKU_API_KEY = credentials('heroku_api_key')
+            }
+            steps{
+                script { //La synatxe suivante c'est pour lancer plusieurs commande shell
+                    sh 
+                        '''
+                            heroku container:login
+                            heroku create $PRODUCTION || echo "project already exist"
+                            heroku container:push -a $PRODUCTION web
+                            heroku container:release -a $PRODUCTION web
+                        '''
+                }
+            }
+        }
         stage("Notifications to discord"){
             agent any
             environment{
@@ -66,6 +88,6 @@ pipeline{
                 }
             }
         }
-
-    }
+    }    
+    
 }
