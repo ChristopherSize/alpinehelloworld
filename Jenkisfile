@@ -1,0 +1,79 @@
+pipeline{
+    //Pour définir des variables global dans un jenkinsfile
+    environment{
+        IMAGE_NAME = "alpinehelloworld"
+        IMAGE_TAG= "latest"
+        //Le nom de notre projet sur heroku qui va héberger notre infrastructure de staging
+        STAGING= "Size-staging"
+        PRODUCTION = "Size-production"
+    }
+
+    agent none
+
+    stages{
+        stage('build image'){
+            agent any
+            steps{
+                script { //Pour les instructions shell
+                    sh 'docker build -t christophersize/$IMAGE_NAME:$IMAGE_TAG .'
+                }
+            }
+        }
+
+        stage('Run container based on build image'){
+            agent any
+            steps{
+                script { //La synatxe suivante c'est pour lancer plusieurs commande shell
+                    sh '''
+                        docker run --name $IMAGE_NAMEb -d -p 81:5000 -e PORT=5000 christophersize/$IMAGE_NAME:$IMAGE_TAG
+                        sleep 5 
+                    '''
+                }
+            }
+        }
+
+        stage('Test image'){
+            agent any
+            steps{
+                script { 
+                    sh 'curl http://13.60.157.205:81 | grep -q "Hello world!'
+                }
+            }
+        }
+
+        stage('Clean contanier'){
+            agent any
+            steps{
+                script { //La synatxe suivante c'est pour lancer plusieurs commande shell
+                    sh '''
+                        docker stop  $IMAGE_NAME 
+                        docker rm $IMAGE_NAME
+                    '''
+                }
+            }
+        }
+
+        stage("Push image in staging and deploying it"){
+            //Pour s'assurer que cette étape ne se déploy que sur la master branch
+            when{
+                expression {GIT_Branch == 'origin/master'}
+
+            }
+            agent any
+            environment{
+                HEROKU_API_KEY = credentials('heroku_api_key')
+            }
+            steps{
+                script { //La synatxe suivante c'est pour lancer plusieurs commande shell
+                    sh 
+                        '''
+                            heroku container:login
+                            heroku create $PRODUCTION || echo "project already exist"
+                            heroku container:push -a $PRODUCTION web
+                            heroku container:release -a $PRODUCTION web
+                        '''
+                }
+            }
+        }
+    }
+}
